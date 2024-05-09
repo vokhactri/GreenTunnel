@@ -1,4 +1,4 @@
-const {app, BrowserWindow, Menu, Tray, shell, ipcMain, nativeImage} = require('electron');
+const {app, BrowserWindow, Menu, Tray, shell, ipcMain, nativeImage, nativeTheme} = require('electron');
 const windowStateKeeper = require('electron-window-state');
 const debug = /--debug/.test(process.argv[2]);
 const {Proxy} = require('green-tunnel');
@@ -134,9 +134,9 @@ async function turnOff() {
     menuItems[0].click = () => turnOn();
     tray.setContextMenu(Menu.buildFromTemplate(menuItems));
 
-    const iconPath = path.join(__dirname, 'images/iconDisabledTemplate.png');
-    const trayIcon = nativeImage.createFromPath(iconPath);
-    tray.setImage(trayIcon);
+    // const iconPath = path.join(__dirname, 'images/iconDisabledTemplate.png');
+    // const trayIcon = nativeImage.createFromPath(iconPath);
+    tray.setImage(getTrayIcon());
 }
 
 async function turnOn() {
@@ -160,9 +160,9 @@ async function turnOn() {
     menuItems[0].click = () => turnOff();
     tray.setContextMenu(Menu.buildFromTemplate(menuItems));
 
-    const iconPath = path.join(__dirname, 'images/iconTemplate.png');
-    const trayIcon = nativeImage.createFromPath(iconPath);
-    tray.setImage(trayIcon);
+    // const iconPath = path.join(__dirname, 'images/iconTemplate.png');
+    // const trayIcon = nativeImage.createFromPath(iconPath);
+    tray.setImage(getTrayIcon());
 }
 
 function createWindow() {
@@ -255,3 +255,21 @@ ipcMain.on('on-off-button', (event, arg) => {
     else
         turnOn();
 });
+
+nativeTheme.on("updated", () => tray.setImage(getTrayIcon()));
+
+function getTrayIcon(isDark = nativeTheme.shouldUseDarkColors) {
+    const iconDir = TRAY_ICON[isDark ? 'dark' : 'light'][isOn ? 'on' : 'off'];
+    return nativeImage.createFromPath(path.join(__dirname, iconDir));
+}
+
+const TRAY_ICON = {
+    light: {
+        on: 'images/iconTemplate.png',
+        off: 'images/iconDisabledTemplate.png'
+    },
+    dark: {
+        on: 'images/iconDarkTemplate.png',
+        off: 'images/iconDarkDisabledTemplate.png'
+    }
+}
